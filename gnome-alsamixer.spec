@@ -1,79 +1,105 @@
 %define	name	gnome-alsamixer
-%define version 0.9.6
-%define release %mkrel 5
+%define version 0.9.7
+# Many other major distros are also using SVN snapshots (inc. Debian).
+# It includes useful updates and apparently no regressions from 0.9.6.
+# - AdamW 2007/06
+%define svn	205
+%if %svn
+%define release %mkrel 0.%svn.1
+%else
+%define release %mkrel 1
+%endif
+%define schemas %name
 
 Name:		%{name}
-Summary:	An ALSA mixer for GNOME written for ALSA 0.9.x
+Summary:	ALSA mixer (volume control) for GNOME
 Version:	%{version}
 Release:	%{release}
 License:	GPL
 Group:		Sound 
 URL:		http://www.paw.co.za/projects/gnome-alsamixer/
+%if %svn
+Source0:	%{name}-%{svn}.tar.bz2
+%else
 Source0:	ftp://ftp.paw.co.za/pub/PAW/sources/%{name}-%{version}.tar.bz2
-Source1:	gnome-alsamixer-nb.po.bz2
+%endif
 Source11:	%{name}-16.png
 Source12:	%{name}-32.png
 Source13:	%{name}-48.png
-Patch:	gnome-alsamixer-0.9.6-deprecation.patch.bz2
+Patch0:	gnome-alsamixer-0.9.6-deprecation.patch
+# From ALT Linux: introduce the gconf schema, which is missing 
+# upstream, and correct the paths to it - AdamW 2007/06
+Patch1:	change_gconf-keys_path.diff
+Patch2:	gnome-alsamixer.schemas.diff
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires:	alsa-lib-devel >= 0.9.0 desktop-file-utils libgnomeui2-devel
-BuildRequires: automake1.4
+BuildRequires:	alsa-lib-devel >= 0.9.0 libgnomeui2-devel
+%if %svn
+BuildRequires:	autoconf
+%else
+BuildRequires:	automake1.4
+%endif
 
 %description
-A sound mixer for GNOME2 which is written for the Advanced Linux Sound
-Architecture (ALSA), which supports ALSA 0.9.x.
+A sound mixer (volume control) for ALSA, built for the GNOME desktop
+environment.
 
 %prep
+%if %svn
+%setup -q -n %{name}
+%else
 %setup -q
-%patch -p1
-automake-1.4
-bzcat %{SOURCE1} > po/nb.po
+%endif
+%patch0 -p1 -b .deprecated
+%patch1 -p1 -b .gconf_keys
+%patch2 -p1 -b .schema
 
 %build
+%if %svn
+./autogen.sh
+%else
+automake-1.4
+%endif
 export CPPFLAGS=-I%_includedir/alsa
-%configure2_5x
+%configure2_5x --disable-schemas-install
 %make
-msgfmt po/nb.po -o po/nb.gmo
 
 %install
 rm -rf $RPM_BUILD_ROOT
 %makeinstall_std
-install -m644 po/nb.gmo -D $RPM_BUILD_ROOT%{_datadir}/locale/nb/LC_MESSAGES/%{name}.mo
 
 # Menu
-install -d $RPM_BUILD_ROOT%{_menudir}
-cat <<EOF > $RPM_BUILD_ROOT%{_menudir}/%{name}
-?package(%name): \
-	command="%{name}" \
-	needs="X11" \
-	icon="%{name}.png" \
-	section="Multimedia/Sound" \
-	title="Gnome-ALSA-Mixer" \
-	longtitle="A gnome ALSA Mixer" xdg="true"
-EOF
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
 cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
 Encoding=UTF-8
-Name=Gnome-ALSA-Mixer
-Comment=A gnome ALSA Mixer
+Name=GNOME ALSA mixer
+Comment=GNOME ALSA mixer (volume control)
 Exec=%{name}
 Icon=%name
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=X-MandrivaLinux-Multimedia-Sound;Audio;Mixer;GTK;GNOME;
+Categories=;Audio;Mixer;GTK;GNOME;
 EOF
 
 # icon
-install -m644 %{SOURCE11} -D $RPM_BUILD_ROOT/%{_miconsdir}/%{name}.png
-install -m644 %{SOURCE12} -D $RPM_BUILD_ROOT/%{_iconsdir}/%{name}.png
-install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT/%{_liconsdir}/%{name}.png
+install -m644 %{SOURCE11} -D $RPM_BUILD_ROOT%{_miconsdir}/%{name}.png
+install -m644 %{SOURCE11} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/16x16/apps/%{name}.png
+install -m644 %{SOURCE12} -D $RPM_BUILD_ROOT%{_iconsdir}/%{name}.png
+install -m644 %{SOURCE12} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/32x32/apps/%{name}.png
+install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT%{_liconsdir}/%{name}.png
+install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/48x48/apps/%{name}.png
 
 %{find_lang} %{name}
 
 %post
 %{update_menus}
+%post_install_gconf_schemas %{schemas}
+%update_icon_cache hicolor
+
+%preun
+%preun_uninstall_gconf_schemas %{schemas}
+%clean_icon_cache hicolor
 
 %postun
 %{clean_menus}
@@ -85,9 +111,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 %doc COPYING ChangeLog AUTHORS INSTALL 
 %{_bindir}/%{name}
-%{_datadir}/applications/mandriva*
+%{_sysconfdir}/gconf/schemas/%name.schemas
+%{_datadir}/applications/mandriva-%{name}.desktop
 %{_datadir}/pixmaps/*
-%{_menudir}/%{name}
 %{_miconsdir}/%{name}.png
 %{_iconsdir}/%{name}.png
 %{_liconsdir}/%{name}.png
+%{_iconsdir}/hicolor/16x16/apps/%{name}.png
+%{_iconsdir}/hicolor/32x32/apps/%{name}.png
+%{_iconsdir}/hicolor/48x48/apps/%{name}.png
