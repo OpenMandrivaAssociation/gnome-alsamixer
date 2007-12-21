@@ -31,6 +31,7 @@ Patch0:	gnome-alsamixer-0.9.6-deprecation.patch
 # upstream, and correct the paths to it - AdamW 2007/06
 Patch1:	change_gconf-keys_path.diff
 Patch2:	gnome-alsamixer.schemas.diff
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires:	alsa-lib-devel >= 0.9.0 libgnomeui2-devel
 %if %svn
 BuildRequires:	autoconf
