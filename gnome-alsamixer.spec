@@ -98,10 +98,10 @@ install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/48x48/apps/%{na
 
 %preun
 %preun_uninstall_gconf_schemas %{schemas}
-%clean_icon_cache hicolor
 
 %postun
 %{clean_menus}
+%clean_icon_cache hicolor
 
 %clean
 rm -rf $RPM_BUILD_ROOT
