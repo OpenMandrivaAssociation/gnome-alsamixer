@@ -78,7 +78,7 @@ Icon=%name
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=;Audio;Mixer;GTK;GNOME;
+Categories=Audio;Mixer;GTK;GNOME;
 EOF
 
 # icon
