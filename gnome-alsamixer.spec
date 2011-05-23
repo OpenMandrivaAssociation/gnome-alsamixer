@@ -5,7 +5,7 @@
 # - AdamW 2007/06
 %define svn	205
 %if %svn
-%define release %mkrel 0.%svn.4
+%define release %mkrel 0.%svn.5
 %else
 %define release %mkrel 4
 %endif
