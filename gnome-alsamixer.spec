@@ -31,8 +31,7 @@ Patch0:	gnome-alsamixer-0.9.6-deprecation.patch
 # upstream, and correct the paths to it - AdamW 2007/06
 Patch1:	change_gconf-keys_path.diff
 Patch2:	gnome-alsamixer.schemas.diff
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires:	alsa-lib-devel >= 0.9.0 libgnomeui2-devel
+BuildRequires:	alsa-oss-devel >= 0.9.0 pkgconfig(libgnomeui-2.0)
 %if %svn
 BuildRequires:	autoconf
 %else
@@ -61,15 +60,14 @@ automake-1.4
 %endif
 export CPPFLAGS=-I%_includedir/alsa
 %configure2_5x --disable-schemas-install
-%make
+%make LIBS="-lm"
 
 %install
-rm -rf $RPM_BUILD_ROOT
 %makeinstall_std
 
 # Menu
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
-cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-%{name}.desktop << EOF
+mkdir -p %{buildroot}%{_datadir}/applications
+cat > %{buildroot}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
 Name=GNOME ALSA mixer
 Comment=GNOME ALSA mixer (volume control)
@@ -82,36 +80,20 @@ Categories=Audio;Mixer;GTK;GNOME;
 EOF
 
 # icon
-install -m644 %{SOURCE11} -D $RPM_BUILD_ROOT%{_miconsdir}/%{name}.png
-install -m644 %{SOURCE11} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/16x16/apps/%{name}.png
-install -m644 %{SOURCE12} -D $RPM_BUILD_ROOT%{_iconsdir}/%{name}.png
-install -m644 %{SOURCE12} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/32x32/apps/%{name}.png
-install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT%{_liconsdir}/%{name}.png
-install -m644 %{SOURCE13} -D $RPM_BUILD_ROOT%{_iconsdir}/hicolor/48x48/apps/%{name}.png
+install -m644 %{SOURCE11} -D %{buildroot}%{_miconsdir}/%{name}.png
+install -m644 %{SOURCE11} -D %{buildroot}%{_iconsdir}/hicolor/16x16/apps/%{name}.png
+install -m644 %{SOURCE12} -D %{buildroot}%{_iconsdir}/%{name}.png
+install -m644 %{SOURCE12} -D %{buildroot}%{_iconsdir}/hicolor/32x32/apps/%{name}.png
+install -m644 %{SOURCE13} -D %{buildroot}%{_liconsdir}/%{name}.png
+install -m644 %{SOURCE13} -D %{buildroot}%{_iconsdir}/hicolor/48x48/apps/%{name}.png
 
 %{find_lang} %{name}
 
-%if %mdkversion < 200900
-%post
-%{update_menus}
-%post_install_gconf_schemas %{schemas}
-%update_icon_cache hicolor
-%endif
 
 %preun
 %preun_uninstall_gconf_schemas %{schemas}
 
-%if %mdkversion < 200900
-%postun
-%{clean_menus}
-%clean_icon_cache hicolor
-%endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files -f %name.lang
-%defattr(-, root, root)
 %doc COPYING ChangeLog AUTHORS INSTALL 
 %{_bindir}/%{name}
 %{_sysconfdir}/gconf/schemas/%name.schemas
