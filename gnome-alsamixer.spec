@@ -17,7 +17,7 @@ Version:	%{version}
 Release:	%{release}
 License:	GPL
 Group:		Sound 
-URL:		http://www.paw.co.za/projects/gnome-alsamixer/
+URL:		https://www.paw.co.za/projects/gnome-alsamixer/
 %if %svn
 Source0:	%{name}-%{svn}.tar.bz2
 %else
