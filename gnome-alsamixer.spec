@@ -7,7 +7,7 @@
 %if %svn
 %define release %mkrel 0.%svn.5
 %else
-%define release 5
+%define release 6
 %endif
 %define schemas %name
 
